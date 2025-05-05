@@ -2,11 +2,20 @@ from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import auth, User
 
+from core.models import MeetingMinutes
+
 # Create your views here.
 
 @login_required
 def homepage(request):
-    return render(request, 'homepage.html')
+
+    all_meeting_minutes = MeetingMinutes.objects.all().order_by('-date')
+
+    context = {
+        'all_meeting_minutes':all_meeting_minutes,
+    }
+
+    return render(request, 'homepage.html', context=context)
 
 def login(request):
 
@@ -26,6 +35,18 @@ def login(request):
 
 @login_required
 def minutes(request):
+
+    if request.method == 'POST':
+        if 'minutes_form' in request.POST:
+            date = request.POST.get('date')
+            location = request.POST.get('location')
+            agenda = request.POST.get('agenda')
+            discussion = request.POST.get('discussion')
+
+            MeetingMinutes.objects.create(date=date, location=location, agenda=agenda, discussion=discussion)
+
+            return redirect('core:homepage')
+
     return render(request, 'minutes.html')
 
 def signup(request):
